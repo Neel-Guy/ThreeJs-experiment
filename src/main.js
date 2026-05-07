@@ -1,4 +1,4 @@
-import './style.css'
+import "./style.css";
 
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/Addons.js";
@@ -19,22 +19,18 @@ let mixer;
 
 const loader = new GLTFLoader();
 loader.load(
-  // "/demon_bee_full_texture.glb",
   "/car.glb",
   function (gltf) {
     char = gltf.scene;
     char.position.y = -1;
-    // char.rotation.y = 1.2
 
     mixer = new THREE.AnimationMixer(char);
     mixer.clipAction(gltf.animations[0]).play();
     scene.add(char);
-
-    console.log("char", gltf.animations);
   },
   function (xhr) {},
   function (error) {
-    console.error("modelLoaderr",error);
+    console.error("modelLoaderr", error);
   },
 );
 
@@ -49,14 +45,29 @@ const topLight = new THREE.DirectionalLight(0xffffff, 1);
 topLight.position.set(500, 500, 500);
 scene.add(topLight);
 
+const gridHelper = new THREE.GridHelper(200, 50);
+scene.add(gridHelper);
+
+
+const axesHelper = new THREE.AxesHelper(5);
+scene.add(axesHelper);
+
+const targetPosition = new THREE.Vector3();
+
 const animate = () => {
-    if (char) {
-      camera.position.set(0, 2, 16);
+  if (char) {
+    targetPosition.set(
+      char.position.x,
+      char.position.y + 2,
+      char.position.z + 16,
+    );
+
+    camera.position.lerp(targetPosition, 0.05);
     camera.lookAt(char.position);
   }
   requestAnimationFrame(animate);
   renderer.render(scene, camera);
-  if(mixer) mixer.update(0.02);
+  if (mixer) mixer.update(0.02);
 };
 
 animate();
