@@ -10,12 +10,23 @@ const camera = new THREE.PerspectiveCamera(
   1000,
 );
 
+
+let char;
+let mixer;
+
+let speed = 0;
+const acceleration = 0.002;
+const maxSpeed = 0.15;
+const friction = 0.98;
+const turnSpeed = 0.03;
+
 camera.position.z = 13;
 
 const scene = new THREE.Scene();
 
-let char;
-let mixer;
+
+let carPivot = new THREE.Group();
+scene.add(carPivot);
 
 const loader = new GLTFLoader();
 loader.load(
@@ -26,7 +37,7 @@ loader.load(
 
     mixer = new THREE.AnimationMixer(char);
     mixer.clipAction(gltf.animations[0]).play();
-    scene.add(char);
+    carPivot.add(char);
   },
   function (xhr) {},
   function (error) {
@@ -54,20 +65,62 @@ scene.add(axesHelper);
 
 const targetPosition = new THREE.Vector3();
 
-const animate = () => {
-  if (char) {
-    targetPosition.set(
-      char.position.x,
-      char.position.y + 2,
-      char.position.z + 16,
-    );
 
-    camera.position.lerp(targetPosition, 0.05);
-    camera.lookAt(char.position);
+const keys = {
+  w: false,
+  a: false,
+  s: false,
+  d: false,
+};
+
+window.addEventListener("keydown", (e) => {
+  const key = e.key.toLowerCase();
+
+  if (keys.hasOwnProperty(key)) {
+    keys[key] = true;
   }
+});
+
+window.addEventListener("keyup", (e) => {
+  const key = e.key.toLowerCase();
+
+  if (keys.hasOwnProperty(key)) {
+    keys[key] = false;
+  }
+});
+
+
+const animate = () => {
   requestAnimationFrame(animate);
-  renderer.render(scene, camera);
+
+  if (keys.w) speed += acceleration;
+  if (keys.s) speed -= acceleration;
+
+  speed = Math.max(-maxSpeed / 2, Math.min(maxSpeed, speed));
+
+  speed *= friction;
+
+  carPivot.translateZ(speed);
+
+  if (speed !== 0) {
+    const direction = speed > 0 ? 1 : -1;
+
+    if (keys.a) {
+      carPivot.rotation.y += turnSpeed * direction;
+    }
+
+    if (keys.d) {
+      carPivot.rotation.y -= turnSpeed * direction;
+    }
+  }
+
+  if (char) {
+    camera.lookAt(carPivot.position);
+  }
+
   if (mixer) mixer.update(0.02);
+
+  renderer.render(scene, camera);
 };
 
 animate();
