@@ -15,15 +15,17 @@ let char;
 let mixer;
 
 let speed = 0;
-const acceleration = 0.002;
-const maxSpeed = 0.15;
-const friction = 0.98;
-const turnSpeed = 0.03;
+const acceleration = 10.0;
+const maxSpeed = 15.0;
+const minSpeed = 0.1;
+const turnSpeed = 2.5;
+const friction = 0.96;
 
 camera.position.z = 13;
 
 const scene = new THREE.Scene();
 
+const clock = new THREE.Timer();
 
 let carPivot = new THREE.Group();
 scene.add(carPivot);
@@ -94,35 +96,38 @@ window.addEventListener("keyup", (e) => {
 });
 
 
-const animate = () => {
+const animate = (timestamp) => {
   requestAnimationFrame(animate);
 
+  clock.update(timestamp);
+
+  const delta = clock.getDelta();
+
   if (current_animation) {
-    if (speed <= 0.002 && speed >= -0.002) {
-      current_animation.stop();
+    if (Math.abs(speed) < minSpeed) {
+      current_animation?.stop();
     } else {
-      current_animation.play();
+      current_animation?.play();
     }
   }
 
-  if (keys.w) speed += acceleration;
-  if (keys.s) speed -= acceleration;
+  if (keys.w) speed += acceleration * delta;
+  if (keys.s) speed -= acceleration * delta;
 
   speed = Math.max(-maxSpeed / 2, Math.min(maxSpeed, speed));
 
-  speed *= friction;
+  speed *= Math.pow(friction, delta * 60);
 
-  carPivot.translateZ(speed);
+  carPivot.translateZ(speed * delta);
 
-  if (speed !== 0) {
+  if (Math.abs(speed) >= minSpeed) {
     const direction = speed > 0 ? 1 : -1;
 
     if (keys.a) {
-      carPivot.rotation.y += turnSpeed * direction;
+      carPivot.rotation.y += turnSpeed * delta * direction;
     }
-
     if (keys.d) {
-      carPivot.rotation.y -= turnSpeed * direction;
+      carPivot.rotation.y -= turnSpeed * delta * direction;
     }
   }
 
@@ -130,7 +135,7 @@ const animate = () => {
     camera.lookAt(carPivot.position);
   }
 
-  if (mixer) mixer.update(0.02);
+  if (mixer) mixer.update(delta);
 
   renderer.render(scene, camera);
 };
