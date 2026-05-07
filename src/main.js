@@ -28,6 +28,8 @@ const scene = new THREE.Scene();
 let carPivot = new THREE.Group();
 scene.add(carPivot);
 
+let current_animation;
+
 const loader = new GLTFLoader();
 loader.load(
   "/car.glb",
@@ -36,7 +38,9 @@ loader.load(
     char.position.y = -1;
 
     mixer = new THREE.AnimationMixer(char);
-    mixer.clipAction(gltf.animations[0]).play();
+
+    current_animation = mixer.clipAction(gltf.animations[0]);
+
     carPivot.add(char);
   },
   function (xhr) {},
@@ -44,6 +48,8 @@ loader.load(
     console.error("modelLoaderr", error);
   },
 );
+
+carPivot.rotation.y = Math.PI
 
 const renderer = new THREE.WebGLRenderer({ alpha: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -62,8 +68,6 @@ scene.add(gridHelper);
 
 const axesHelper = new THREE.AxesHelper(5);
 scene.add(axesHelper);
-
-const targetPosition = new THREE.Vector3();
 
 
 const keys = {
@@ -92,6 +96,14 @@ window.addEventListener("keyup", (e) => {
 
 const animate = () => {
   requestAnimationFrame(animate);
+
+  if (current_animation) {
+    if (speed <= 0.002 && speed >= -0.002) {
+      current_animation.stop();
+    } else {
+      current_animation.play();
+    }
+  }
 
   if (keys.w) speed += acceleration;
   if (keys.s) speed -= acceleration;
