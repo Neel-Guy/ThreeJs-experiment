@@ -4,31 +4,30 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/Addons.js";
 
 const camera = new THREE.PerspectiveCamera(
-  10,
+  75,
   window.innerWidth / window.innerHeight,
   0.1,
   1000,
 );
-
+const cameraOffset = new THREE.Vector3(0, 4, -10);
+const tempVecGoalPos = new THREE.Vector3();
 
 let char;
 let mixer;
 
 let speed = 0;
-const acceleration = 10.0;
-const maxSpeed = 15.0;
+const acceleration = 20.0;
+const maxSpeed = 30.0;
 const minSpeed = 0.1;
 const turnSpeed = 2.5;
 const friction = 0.96;
-
-camera.position.z = 13;
 
 const scene = new THREE.Scene();
 
 const clock = new THREE.Timer();
 
-let carPivot = new THREE.Group();
-scene.add(carPivot);
+let charPivot = new THREE.Group();
+scene.add(charPivot);
 
 let current_animation;
 
@@ -37,21 +36,19 @@ loader.load(
   "/car.glb",
   function (gltf) {
     char = gltf.scene;
-    char.position.y = -1;
+    char.scale.multiplyScalar(4);
 
     mixer = new THREE.AnimationMixer(char);
 
     current_animation = mixer.clipAction(gltf.animations[0]);
 
-    carPivot.add(char);
+    charPivot.add(char);
   },
   function (xhr) {},
   function (error) {
     console.error("modelLoaderr", error);
   },
 );
-
-carPivot.rotation.y = Math.PI
 
 const renderer = new THREE.WebGLRenderer({ alpha: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -67,10 +64,8 @@ scene.add(topLight);
 const gridHelper = new THREE.GridHelper(200, 50);
 scene.add(gridHelper);
 
-
 const axesHelper = new THREE.AxesHelper(5);
 scene.add(axesHelper);
-
 
 const keys = {
   w: false,
@@ -79,8 +74,14 @@ const keys = {
   d: false,
 };
 
+let followCam = true;
+
 window.addEventListener("keydown", (e) => {
   const key = e.key.toLowerCase();
+
+  if (key.toLowerCase() === "e") {
+    followCam = !followCam;
+  }
 
   if (keys.hasOwnProperty(key)) {
     keys[key] = true;
@@ -94,7 +95,6 @@ window.addEventListener("keyup", (e) => {
     keys[key] = false;
   }
 });
-
 
 const animate = (timestamp) => {
   requestAnimationFrame(animate);
@@ -118,21 +118,34 @@ const animate = (timestamp) => {
 
   speed *= Math.pow(friction, delta * 60);
 
-  carPivot.translateZ(speed * delta);
+  charPivot.translateZ(speed * delta);
 
   if (Math.abs(speed) >= minSpeed) {
     const direction = speed > 0 ? 1 : -1;
 
     if (keys.a) {
-      carPivot.rotation.y += turnSpeed * delta * direction;
+      charPivot.rotation.y += turnSpeed * delta * direction;
     }
     if (keys.d) {
-      carPivot.rotation.y -= turnSpeed * delta * direction;
+      charPivot.rotation.y -= turnSpeed * delta * direction;
     }
   }
 
   if (char) {
-    camera.lookAt(carPivot.position);
+    if (followCam) {
+      tempVecGoalPos
+        .copy(cameraOffset)
+        .applyQuaternion(charPivot.quaternion)
+        .add(charPivot.position);
+    }
+    camera.position.lerp(tempVecGoalPos, 0.555);
+
+    const lookAtOffset = new THREE.Vector3(0, 1, 4);
+    const lookAtTarget = lookAtOffset
+      .applyQuaternion(charPivot.quaternion)
+      .add(charPivot.position);
+
+    camera.lookAt(lookAtTarget);
   }
 
   if (mixer) mixer.update(delta);
