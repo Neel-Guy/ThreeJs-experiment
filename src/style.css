@@ -1,4 +1,17 @@
-:root{
+:root {
   background-color: #16171d;
   overflow: hidden;
+}
+
+#debug_menu {
+  background-color: rgb(116, 116, 116);
+  color: white;
+  padding: 0.2rem 0.75em;
+  font-family:
+    "Lucida Sans", "Lucida Sans Regular", "Lucida Grande",
+    "Lucida Sans Unicode", Geneva, Verdana, sans-serif;
+  font-weight: 300;
+  position: absolute;
+  top: 0;
+  right: 0;
 }

@@ -2,6 +2,7 @@ import "./style.css";
 
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/Addons.js";
+import { updateDebug } from "./debug";
 
 const camera = new THREE.PerspectiveCamera(
   75,
@@ -89,13 +90,13 @@ window.addEventListener("keydown", (e) => {
 });
 
 window.addEventListener("keyup", (e) => {
+  updateDebug(followCam);
   const key = e.key.toLowerCase();
 
   if (keys.hasOwnProperty(key)) {
     keys[key] = false;
   }
 });
-
 const animate = (timestamp) => {
   requestAnimationFrame(animate);
 
@@ -154,3 +155,4 @@ const animate = (timestamp) => {
 };
 
 animate();
+updateDebug(followCam);
