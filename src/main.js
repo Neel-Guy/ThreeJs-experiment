@@ -82,18 +82,29 @@ scene.add(gridHelper);
 const axesHelper = new THREE.AxesHelper(5);
 scene.add(axesHelper);
 
-const floorGeometry = new THREE.BoxGeometry(10, 1, 10);
-const floorMaterial = new THREE.MeshStandardMaterial({
-  color: 0x444444,
-});
+let planeMesh;
 
-const floorMesh = new THREE.Mesh(floorGeometry, floorMaterial);
-floorMesh.position.y = -0.5;
-scene.add(floorMesh);
+loader.load(
+  "/plane.glb",
+  function (gltf) {
+    planeMesh = gltf.scene;
+    planeMesh.scale.set(120, 120, 120);
+
+    planeMesh.position.set(0, -0.5, 0);
+
+    planeMesh.traverse((child) => {
+      if (child.isMesh) child.receiveShadow = true;
+    });
+
+    scene.add(planeMesh);
+  },
+  undefined,
+  (error) => console.error("Plane Load Error:", error),
+);
 
 const floorBody = new CANNON.Body({
   mass: 0,
-  shape: new CANNON.Box(new CANNON.Vec3(5, 0.5, 5)),
+  shape: new CANNON.Box(new CANNON.Vec3(60, 0.5, 60)),
 });
 
 floorBody.position.set(0, -0.5, 0);
