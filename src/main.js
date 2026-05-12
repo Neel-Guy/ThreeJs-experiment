@@ -43,7 +43,7 @@ loader.load(
   function (gltf) {
     char = gltf.scene;
     char.scale.multiplyScalar(4);
-    char.position.set(0, -1.5, -0.5);
+    char.position.set(0, -1.45, 0.25);
 
     mixer = new THREE.AnimationMixer(char);
 
@@ -59,10 +59,9 @@ loader.load(
 
 const carBody = new CANNON.Body({
   mass: 1,
-  shape: new CANNON.Sphere(2.0),
+  shape: new CANNON.Sphere(1.75),
+  position: new CANNON.Vec3(0, 8, 4),
 });
-
-carBody.position.set(0, 8, 0);
 world.addBody(carBody);
 
 const renderer = new THREE.WebGLRenderer({ alpha: true });
@@ -89,7 +88,7 @@ loader.load(
   "/plane.glb",
   function (gltf) {
     planeMesh = gltf.scene;
-    planeMesh.scale.set(120, 120, 120);
+    planeMesh.scale.set(200, 200, 200);
 
     planeMesh.position.set(0, -0.5, 0);
 
@@ -99,7 +98,7 @@ loader.load(
     const pos = geo.attributes.position.array.slice();
     const scaledPos = new Float64Array(pos.length);
     for (let i = 0; i < pos.length; i++) {
-      scaledPos[i] = pos[i] * 120;
+      scaledPos[i] = pos[i] * 200;
     }
     const tri = new CANNON.Trimesh(scaledPos, idx);
 
