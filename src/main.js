@@ -126,8 +126,14 @@ const keys = {
 
 let followCam = true;
 let showDebugPhysics = false;
+let show3dHelpers = false;
 
 const cannonDebugger = new CannonDebugger(scene, world);
+
+function set3DHelpersVisibility(visible) {
+  gridHelper.visible = visible;
+  axesHelper.visible = visible;
+}
 
 function setDebuggerVisible(visible) {
   scene.traverse((child) => {
@@ -148,13 +154,18 @@ window.addEventListener("keydown", (e) => {
     showDebugPhysics = !showDebugPhysics;
   }
 
+  if (key === "h") {
+    show3dHelpers = !show3dHelpers;
+    set3DHelpersVisibility(show3dHelpers);
+  }
+
   if (keys.hasOwnProperty(key)) {
     keys[key] = true;
   }
 });
 
 window.addEventListener("keyup", (e) => {
-  updateDebug(followCam, showDebugPhysics);
+  updateDebug(followCam, showDebugPhysics, show3dHelpers);
 
   const key = e.key.toLowerCase();
 
@@ -237,4 +248,6 @@ const animate = (timestamp) => {
 };
 
 animate();
-updateDebug(followCam, showDebugPhysics);
+
+set3DHelpersVisibility(show3dHelpers);
+updateDebug(followCam, showDebugPhysics, show3dHelpers);

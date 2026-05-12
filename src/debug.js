@@ -1,18 +1,28 @@
 const debugMenu = document.getElementById("debug_menu");
 
-export function updateDebug(followCam = false, showDebugPhysics = false) {
-  debugMenu.innerHTML = "";
-  const cam = document.createElement("p");
-  const additionalKeyInfoCam = `(Press 'E' to toggle)`;
-  followCam
-    ? (cam.innerHTML = `Follow Cam ON ${additionalKeyInfoCam}`)
-    : (cam.innerHTML = `Follow Cam OFF ${additionalKeyInfoCam}`);
-  debugMenu.appendChild(cam);
+function getDebugLine(id) {
+  let el = document.getElementById(id);
+  if (!el) {
+    el = document.createElement("p");
+    el.id = id;
+    debugMenu.appendChild(el);
+  }
+  return el;
+}
 
-  const physics = document.createElement("p");
-  const additionalKeyInfoPhysics = `(Press 'P' to toggle)`;
-  showDebugPhysics
-    ? (physics.innerHTML = `Physics debug ON ${additionalKeyInfoPhysics}`)
-    : (physics.innerHTML = `Physics debug OFF ${additionalKeyInfoPhysics}`);
-  debugMenu.appendChild(physics);
+export function updateDebug(
+  followCam = false,
+  showDebugPhysics = false,
+  show3dHelpers = false,
+) {
+  const camStatus = followCam ? "ON" : "OFF";
+  const physStatus = showDebugPhysics ? "ON" : "OFF";
+  const helperStatus = show3dHelpers ? "ON" : "OFF";
+
+  getDebugLine("debug_cam").textContent =
+    `Follow Cam: ${camStatus} (Press 'E')`;
+  getDebugLine("debug_phys").textContent =
+    `collider debug: ${physStatus} (Press 'P')`;
+  getDebugLine("debug_help").textContent =
+    `3D helpers: ${helperStatus} (Press 'H')`;
 }
