@@ -57,13 +57,13 @@ loader.load(
   },
 );
 
-const boxBody = new CANNON.Body({
+const carBody = new CANNON.Body({
   mass: 1,
-  shape: new CANNON.Box(new CANNON.Vec3(1.7, 1.45, 2.45)),
+  shape: new CANNON.Sphere(2.0),
 });
 
-boxBody.position.set(0, 5, 0);
-world.addBody(boxBody);
+carBody.position.set(0, 8, 0);
+world.addBody(carBody);
 
 const renderer = new THREE.WebGLRenderer({ alpha: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -83,6 +83,7 @@ const axesHelper = new THREE.AxesHelper(5);
 scene.add(axesHelper);
 
 let planeMesh;
+let floorBody;
 
 loader.load(
   "/plane.glb",
@@ -92,23 +93,29 @@ loader.load(
 
     planeMesh.position.set(0, -0.5, 0);
 
-    planeMesh.traverse((child) => {
-      if (child.isMesh) child.receiveShadow = true;
-    });
+    const geo = gltf.scene.children[0].geometry;
+
+    const idx = geo.index.array.slice();
+    const pos = geo.attributes.position.array.slice();
+    const scaledPos = new Float64Array(pos.length);
+    for (let i = 0; i < pos.length; i++) {
+      scaledPos[i] = pos[i] * 120;
+    }
+    const tri = new CANNON.Trimesh(scaledPos, idx);
+
+    if (world.bodies.indexOf(floorBody) !== -1) {
+      world.removeBody(floorBody);
+    }
+    floorBody = new CANNON.Body({ mass: 0 });
+    floorBody.addShape(tri);
+    floorBody.position.set(0, -0.5, 0);
+    world.addBody(floorBody);
 
     scene.add(planeMesh);
   },
   undefined,
   (error) => console.error("Plane Load Error:", error),
 );
-
-const floorBody = new CANNON.Body({
-  mass: 0,
-  shape: new CANNON.Box(new CANNON.Vec3(60, 0.5, 60)),
-});
-
-floorBody.position.set(0, -0.5, 0);
-world.addBody(floorBody);
 
 const keys = {
   w: false,
@@ -183,8 +190,8 @@ const animate = (timestamp) => {
   const forward = new THREE.Vector3(0, 0, 1);
   forward.applyQuaternion(charPivot.quaternion);
 
-  boxBody.velocity.x = forward.x * speed;
-  boxBody.velocity.z = forward.z * speed;
+  carBody.velocity.x = forward.x * speed;
+  carBody.velocity.z = forward.z * speed;
 
   if (Math.abs(speed) >= minSpeed) {
     const direction = speed > 0 ? 1 : -1;
@@ -198,9 +205,9 @@ const animate = (timestamp) => {
     }
   }
 
-  charPivot.position.copy(boxBody.position);
+  charPivot.position.copy(carBody.position);
 
-  boxBody.quaternion.copy(charPivot.quaternion);
+  carBody.quaternion.copy(charPivot.quaternion);
 
   if (char) {
     if (followCam) {
